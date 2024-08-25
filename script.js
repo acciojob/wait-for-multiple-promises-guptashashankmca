@@ -1,51 +1,45 @@
-const { describe, it, beforeEach } = require('cypress');
+document.addEventListener("DOMContentLoaded", function () {
+  const promiseTable = document.getElementById("promiseTable");
+  const loadingText = document.getElementById("loadingText");
 
-describe('promises-and-chains-solution', () => {
-  beforeEach(() => {
-    cy.visit(baseUrl + "/main.html");
-  })
+  // Create 3 promises that resolve after a random time between 1 and 3 seconds
+  const promises = [
+    createPromise(1),
+    createPromise(2),
+    createPromise(3)
+  ];
 
-  it('should show loading text initially', () => {
-    cy.get("#output").find("tr:first-child").find("td").invoke("text").then(text => {
-      expect(text.trim()).equal("Loading...");
-    });
-  })
+  // Record the start time
+  const startTime = performance.now();
 
-  it('should show promises and total time after 4 seconds', () => {
-    cy.wait(4000);
-    cy.get("#output").find("tr").then(rows => {
-      expect(rows.length).equal(4);
+  // Wait for all promises to resolve
+  Promise.all(promises).then((results) => {
+    // Calculate the total time taken
+    const totalTime = (performance.now() - startTime) / 1000;
+
+    // Remove the loading text
+    promiseTable.removeChild(loadingText.parentElement);
+
+    // Populate the table with the results
+    results.forEach((result, index) => {
+      const row = promiseTable.insertRow();
+      row.insertCell(0).innerText = `Promise ${index + 1}`;
+      row.insertCell(1).innerText = result.toFixed(3);
     });
-    cy.get("#output > tr > td:nth-child(1)").each(($elm, index, $list) => {
-      const t = $elm.text();
-      if (t.includes("Promise 1")) {
-        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
-          const r = parseFloat(d.text());
-          cy.wrap(r).should("be.gte", 1);
-          cy.wrap(r).should("be.lte", 3);
-        });
-      }
-      if (t.includes("Promise 2")) {
-        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
-          const r = parseFloat(d.text());
-          cy.wrap(r).should("be.gte", 1);
-          cy.wrap(r).should("be.lte", 3);
-        });
-      }
-      if (t.includes("Promise 3")) {
-        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
-          const r = parseFloat(d.text());
-          cy.wrap(r).should("be.gte", 1);
-          cy.wrap(r).should("be.lte", 3);
-        });
-      }
-      if (t.includes("Total")) {
-        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
-          const r = parseFloat(d.text());
-          cy.wrap(r).should("be.gte", 2);
-          cy.wrap(r).should("be.lte", 4);
-        });
-      }
+
+    // Add the total row
+    const totalRow = promiseTable.insertRow();
+    totalRow.insertCell(0).innerText = "Total";
+    totalRow.insertCell(1).innerText = totalTime.toFixed(3);
+  });
+
+  // Function to create a promise that resolves after a random time
+  function createPromise(promiseNumber) {
+    const time = Math.random() * 2 + 1; // Random time between 1 and 3 seconds
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(time);
+      }, time * 1000);
     });
-  })
-})
+  }
+});
