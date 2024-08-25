@@ -1,45 +1,49 @@
-//your JS code here. If required.
-const output = document.getElementById('output');
+describe('promises-and-chains-solution', () => {
+  beforeEach(() => {
+    cy.visit(baseUrl + "/main.html");
+  })
 
-// Add a row that spans 2 columns with the exact text Loading...
-const loadingRow = document.createElement('tr');
-loadingRow.innerHTML = '<td colspan="2">Loading...</td>';
-output.appendChild(loadingRow);
+  it('should show loading text initially', () => {
+    cy.get("#output").find("tr:first-child").find("td").invoke("text").then(text => {
+      expect(text.trim()).equal("Loading...");
+    });
+  })
 
-// Create 3 promises, each of which resolves after a random time between 1 and 3 seconds
-const promises = [];
-for (let i = 1; i <= 3; i++) {
-  promises.push(new Promise((resolve, reject) => {
-    const startTime = performance.now();
-    setTimeout(() => {
-      const endTime = performance.now();
-      const timeTaken = (endTime - startTime) / 1000;
-      resolve({ name: `Promise ${i}`, timeTaken });
-    }, Math.floor(Math.random() * 2000) + 1000);
-  }));
-}
-
-// Use Promise.all to wait for all the Promises to resolve
-Promise.all(promises).then((results) => {
-  // Remove the loading text
-  output.removeChild(loadingRow);
-
-  // Populate the table with the required values
-  results.forEach((result) => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${result.name}</td>
-      <td>${result.timeTaken.toFixed(3)}</td>
-    `;
-    output.appendChild(row);
-  });
-
-  // Calculate the total time taken to resolve all promises
-  const totalTimeTaken = results.reduce((acc, current) => acc + current.timeTaken, 0);
-  const totalRow = document.createElement('tr');
-  totalRow.innerHTML = `
-    <td>Total</td>
-    <td>${totalTimeTaken.toFixed(3)}</td>
-  `;
-  output.appendChild(totalRow);
-});
+  it('should show promises and total time after 4 seconds', () => {
+    cy.wait(4000);
+    cy.get("#output").find("tr").then(rows => {
+      expect(rows.length).equal(4);
+    });
+    cy.get("#output > tr > td:nth-child(1)").each(($elm, index, $list) => {
+      const t = $elm.text();
+      if (t.includes("Promise 1")) {
+        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
+          const r = parseFloat(d.text());
+          cy.wrap(r).should("be.gte", 1);
+          cy.wrap(r).should("be.lte", 3);
+        });
+      }
+      if (t.includes("Promise 2")) {
+        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
+          const r = parseFloat(d.text());
+          cy.wrap(r).should("be.gte", 1);
+          cy.wrap(r).should("be.lte", 3);
+        });
+      }
+      if (t.includes("Promise 3")) {
+        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
+          const r = parseFloat(d.text());
+          cy.wrap(r).should("be.gte", 1);
+          cy.wrap(r).should("be.lte", 3);
+        });
+      }
+      if (t.includes("Total")) {
+        cy.get("#output > tr > td:nth-child(1)").eq(index).next().then(function (d) {
+          const r = parseFloat(d.text());
+          cy.wrap(r).should("be.gte", 2);
+          cy.wrap(r).should("be.lte", 4);
+        });
+      }
+    });
+  })
+})
