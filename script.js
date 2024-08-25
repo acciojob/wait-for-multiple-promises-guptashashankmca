@@ -1,3 +1,5 @@
+const { describe, it, beforeEach } = require('cypress');
+
 describe('promises-and-chains-solution', () => {
   beforeEach(() => {
     cy.visit(baseUrl + "/main.html");
